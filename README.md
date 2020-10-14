@@ -99,6 +99,6 @@
     ```shell
     cd client && yarn dev
     ```
-    访问 http://localhost:3000
+    访问 http://localhost:9000
     
 

@@ -5,6 +5,7 @@
 !*.json
 !*.vue
 /keys/
+/.vscode/
 /prover/target/*
 /prover/target/
 /client/node_modules/

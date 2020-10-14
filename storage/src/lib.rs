@@ -44,7 +44,8 @@ pub struct ConnectionPool {
 impl ConnectionPool {
     pub fn new() -> Self {
         //let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-        let database_url = "postgres://postgres:root@localhost/plasma".to_string();
+        //let database_url = "postgres://postgres:root@localhost/plasma".to_string();
+        let database_url = env::var("DATABASE_URL").unwrap_or("postgres://postgres:root@localhost/plasma".to_string());
         let max_size = env::var("DB_POOL_SIZE").unwrap_or_else(|_| "10".to_string());
         let max_size = max_size.parse().expect("DB_POOL_SIZE must be integer");
         let manager = ConnectionManager::<PgConnection>::new(database_url);

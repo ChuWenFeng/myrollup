@@ -1,0 +1,11 @@
+[workspace]
+members = [
+    "circuit",
+    "merkle_tree",
+	"models",
+    "plasma",
+    "server",
+    "storage",
+    "key_generator",
+    "prover",
+]

@@ -16,7 +16,7 @@ use circuit::leaf::LeafWitness;
 use models::plasma::params as plasma_constants;
 
 const DEPOSIT_BATCH_SIZE: usize = 1;
-const FILENAME: &str = "deposit_pk.key";
+const FILENAME: &str = "keys/deposit_pk.key";
 const CONTRACT_FILENAME: &str = "DepositVerificationKey.sol";
 const CONTRACT_NAME: &str = "DepositVerificationKey";
 const CONTRACT_FUNCTION_NAME: &str = "getVkDepositCircuit";
@@ -68,7 +68,7 @@ pub fn make_depositor_key() {
 
     use std::fs::File;
     use std::io::{BufWriter, Write};
-    {
+    {   
         let f = File::create(FILENAME).expect("Unable to create file");
         let mut f = BufWriter::new(f);
         tmp_cirtuit_params

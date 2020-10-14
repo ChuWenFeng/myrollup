@@ -90,6 +90,8 @@
     
     + prover  
     ```shell
+    # 生成zk所需的key
+    ./target/release/key_generator
     ./target/release/prover
     ```
 

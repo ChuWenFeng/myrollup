@@ -16,7 +16,7 @@ use circuit::transfer::transaction::Transaction;
 use models::plasma::params as plasma_constants;
 
 const TRANSFER_BATCH_SIZE: usize = 8;
-const FILENAME: &str = "transfer_pk.key";
+const FILENAME: &str = "keys/transfer_pk.key";
 const CONTRACT_FILENAME: &str = "TransferVerificationKey.sol";
 const CONTRACT_NAME: &str = "TransferVerificationKey";
 const CONTRACT_FUNCTION_NAME: &str = "getVkTransferCircuit";

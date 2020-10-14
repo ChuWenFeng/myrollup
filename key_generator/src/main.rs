@@ -14,6 +14,10 @@ use transactor_key::make_transactor_key;
 fn main() {
     env_logger::init();
 
+    use std::fs::DirBuilder;
+    let path = "keys";
+    DirBuilder::new().recursive(true).create(path).unwrap();
+
     make_depositor_key();
     make_exitor_key();
     make_transactor_key();

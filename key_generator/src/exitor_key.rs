@@ -16,7 +16,7 @@ use circuit::leaf::LeafWitness;
 use models::plasma::params as plasma_constants;
 
 const EXIT_BATCH_SIZE: usize = 1;
-const FILENAME: &str = "exit_pk.key";
+const FILENAME: &str = "keys/exit_pk.key";
 const CONTRACT_FILENAME: &str = "ExitVerificationKey.sol";
 const CONTRACT_NAME: &str = "ExitVerificationKey";
 const CONTRACT_FUNCTION_NAME: &str = "getVkExitCircuit";

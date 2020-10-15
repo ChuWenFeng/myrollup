@@ -34,7 +34,7 @@ myrollup的server分为4部分（去除eth相关）
 *[detail](image/myrollup_server_detail.png)*
 
 ## prover
-启动prover后循环查询数据库是否有已经出块但未被其他prover执行证明的block，且在查询期间将prover_runs上🔓，保证对一个block只有一个prover在生成proof。生存的proof存储至数据库。
+启动prover后循环查询数据库是否有已经出块但未被其他prover执行证明的block，且在查询期间将prover_runs上🔓，保证对一个block只有一个prover在生成proof。当从数据库中的获得的block number与本地的不一致时将自身的状态树更新至block number前一个已经生成证明的账户状态。生成的proof存储至数据库。
 ## 数据库
 |表名|作用|
 |:----|:----|

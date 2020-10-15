@@ -1,10 +1,9 @@
 # myrollup DOC
 ## Client
 ![myrollup](image/client_web.png)
-
 ## server
 rollup server 总体架构
-![rollup](image/rollup_server.png)
+![rollup](image/rollup_server.png)  
 rollup的server分为6个部分  
 1. main  
     程序的入口，负责启动api_server、eth_wathc、state_keeper、committer、eth_sender。同时开启一个定时器每100ms向state_keeper发送一个transfer出块请求，state_keeper在满足一定条件后将会出块。
@@ -21,7 +20,7 @@ rollup的server分为6个部分
 *[detail](image/rollup_server_detail.png)*
 ---------------------------------------------------------------
 myrollup server 总体架构
-![myrollup](image/myrollup_server.png)
+![myrollup](image/myrollup_server.png)  
 myrollup的server分为4部分（去除eth相关）  
 1. main  
     程序入口,启动api_server,state_keeper,committer。...

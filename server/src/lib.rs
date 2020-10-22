@@ -105,13 +105,17 @@ pub fn upper_to_lower(str:&String) -> String{
 pub fn hex256_to_u8vec(hex_string: &String) -> Vec<u8>{
 
     let hex:&str;
-    if '0' == hex_string.chars().nth(0).unwrap() && 'x' == hex_string.chars().nth(1).unwrap(){
-        hex = &hex_string[2..];
+    if(hex_string.len() > 2){
+        if '0' == hex_string.chars().nth(0).unwrap() && 'x' == hex_string.chars().nth(1).unwrap(){
+            hex = &hex_string[2..];
+        }else{
+            hex = &hex_string[..];
+        }
     }else{
-        hex = &hex_string[..];
+        hex = "";
     }
-
-    let mut hex_64_u8 = vec!('0' as u8;64 - hex.len());
+    
+    let mut hex_64_u8 = vec!('0' as u8; 64 - hex.len());
 
     for i in hex.as_bytes(){
         hex_64_u8.push(i.clone());

@@ -207,14 +207,17 @@ impl PlasmaStateKeeper {
                     .unwrap();
             let private_key: PrivateKey<Bn256> =
                 PrivateKey::read(BufReader::new(pk_bytes.as_slice())).unwrap();
+ 
+            // use sapling_crypto::alt_babyjubjub::fs::Fs;
+            // use sapling_crypto::jubjub::ToUniform;
+            // let pk_bytes =
+            //     hex::decode("058452a6b4f8fc2090c55708bae4ee01dc2195294a9dcea2e81030501d66ce2f")// 8ea0225bbf7f3689eb8ba6f8d7bef3d8ae2541573d71711a28d5149807b40805
+            //         .unwrap();
+            // let rr = Fs::to_uniform_32(&pk_bytes);
+            // let mypk:PrivateKey<Bn256> = PrivateKey::<Bn256>(rr);
+            
             let padding_account_id = 2; // TODO: 1
-
             let base_nonce = self.account(padding_account_id).nonce;
-            // let pub_key = self
-            //     .state
-            //     .get_account(padding_account_id)
-            //     .and_then(|a| a.get_pub_key())
-            //     .expect("public key must exist for padding account");
 
             let prepared_transactions: Vec<TransferTx> = (0..(to_pad as u32))
                 .into_par_iter()
@@ -235,26 +238,38 @@ impl PlasmaStateKeeper {
                 })
                 .collect();
 
+                
+
             for tx in prepared_transactions.into_iter() {
 
+                let pub_key = self.state
+                .get_account(tx.from)
+                .and_then(|a| a.get_pub_key())
+                .ok_or("err");
+
+                // 验证签名
                 // use models::plasma::PublicKey;
-                // let mut pub_key: Option<PublicKey> = None;
+                // let mut pub_key2: Option<PublicKey> = None;
                 // if let Some(cache_pub_key) = tx.cached_pub_key.clone(){
-                //     pub_key = Some(cache_pub_key);
+                //     pub_key2 = Some(cache_pub_key);
                 // }
-                // if !pub_key.is_none(){
-                //     let pk = pub_key.unwrap();
-                //     let verified = tx.verify_sig(&pk);
-                //     if !verified {
-                //         let (x, y) = pk.0.into_xy();
-                //         warn!("Got public key: {:?}, {:?}", x, y);
-                //         warn!(
-                //             "Signature is invalid: (x,y,s) = ({:?},{:?},{:?})",
-                //             &tx.signature.r_x, &tx.signature.r_y, &tx.signature.s
-                //         );
-                //         //return;
-                //     }
-                // }
+                // let (x,y) = pub_key2.unwrap().0.into_xy();
+                // println!("{:?}", x);
+                // println!("{:?}", y);
+                if !pub_key.is_err(){
+                    let pk = pub_key.unwrap();
+                    let verified = tx.verify_sig(&pk);
+                    if !verified {
+                        let (x, y) = pk.0.into_xy();
+                        warn!("Got public key: {:?}, {:?}", x, y);
+                        warn!(
+                            "Signature is invalid: (x,y,s) = ({:?},{:?},{:?})",
+                            &tx.signature.r_x, &tx.signature.r_y, &tx.signature.s
+                        );
+                        //return;
+                        panic!("apply padding transfer sign verify err");
+                    }
+                }
                 
                 self.state
                     .apply_transfer(&tx)

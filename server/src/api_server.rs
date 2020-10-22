@@ -144,6 +144,19 @@ fn handle_depositReq<'a>(req: &'a HttpRequest<AppState>) -> Box<Future<Item = Ht
 
             let deposit_tx = tx.get_DepositTx();
 
+            // use pairing::bn256::Bn256;
+            // use std::io::BufReader;
+            // use sapling_crypto::eddsa::PrivateKey;
+            // let pk2_bytes =
+            //     hex::decode(&"8ea0225bbf7f3689eb8ba6f8d7bef3d8ae2541573d71711a28d5149807b40805")
+            //         .unwrap();
+            // let pk_bytes = hex256_to_u8vec(&"58452a6b4f8fc2090c55708bae4ee01dc2195294a9dcea2e81030501d66ce2f".to_string());
+            // let private_key: PrivateKey<Bn256> =
+            //     PrivateKey::read(BufReader::new(pk2_bytes.as_slice())).unwrap();
+            // use sapling_crypto::alt_babyjubjub::fs::{Fs,FsRepr};
+            // use sapling_crypto::jubjub::ToUniform;
+            // let mypk = PrivateKey::<Bn256>(Fs::to_uniform_32(&pk_bytes));
+
             if deposit_tx.is_err(){
                 return Err(deposit_tx.unwrap_err());
             }
@@ -175,45 +188,6 @@ use models::plasma::tx::ExitTx;
 /// 处理myrollup的退出请求，仅用于测试
 fn handle_exitReq(req: &HttpRequest<AppState>) -> ActixResult<HttpResponse>{
 
-    // let tx_for_state = req.state().tx_for_state.clone();
-    // let accounts = req.state().accounts.clone();
-    // req.json()
-    //     .map_err(|e| format!("{}",e))
-    //     .and_then(move |tx: ExitReq| {
-
-    //         println!("{:?}",tx);
-
-    //         let accstr = tx.address.clone();
-
-    //         let mut accountid = Option::None;
-    //         if let Some(id) = req.state().accounts.accounts.as_ref().read().unwrap().get(&()){
-    //             accountid = Some(id.clone());
-    //             //println!("{} 查询 account id is:{}",&address,&accountid.unwrap());
-    //         }
-    //         if accountid.is_none(){
-    //             return Ok(HttpResponse::Ok().json(ApiError {
-    //                 error: "err exit, address not deposit".to_string(),
-    //             }));
-    //         }
-    //         let account = accountid.unwrap();
-
-    //         let tx: ExitTx = ExitTx {
-    //             account: account.clone(),
-    //             amount: BigDecimal::zero(),
-    //         };
-
-    //         let mut all_exits = vec![];
-    //         all_exits.push(tx);
-
-
-
-
-
-    //         let resp = format!("sucess exit id: {}",account);
-    //         Ok(HttpResponse::Ok().json(resp))
-    //     })
-    //     .or_else(|err| Ok(HttpResponse::Ok().json(err)))
-    //     .responder()
     let mut address:String;
 
     if let Some(a) = req.match_info().get("addr"){
@@ -825,7 +799,19 @@ pub fn start_api_server(
             let bind_to = format!("{}:{}", address, port);
 
             let sys = actix::System::new("api-server");
-            //add_applyAccount(tx_for_state.clone());
+            
+            //添加填充账户
+            let storage = connection_pool.access_storage();
+            if storage.is_ok(){
+                let storage = storage.unwrap();
+                let committed = storage.last_committed_state_for_account(2);
+                if let Ok(committed) = committed{
+                    if let None = committed{
+                        add_paddingAccount(tx_for_state.clone());
+                    }
+                }
+            }
+            
             let state = AppState {
                 tx_for_state: tx_for_state.clone(),
                 //contract_address: env::var("CONTRACT_ADDR").expect("CONTRACT_ADDR env missing"),
@@ -834,7 +820,7 @@ pub fn start_api_server(
                 network_status: SharedNetworkStatus::default(),
                 accounts:Accounts::default(),
             };
-
+            
             start_server(state.clone(), bind_to.clone());
             info!("Started http server at {}", &bind_to);
             start_status_interval(state.clone());
@@ -845,12 +831,21 @@ pub fn start_api_server(
 
 
 use bigdecimal::{BigDecimal, Zero};
-fn add_applyAccount(tx_for_state: mpsc::Sender<StateKeeperRequest>){
+fn add_paddingAccount(tx_for_state: mpsc::Sender<StateKeeperRequest>){
 
+    // let applyAccount = DepositReq{
+    //     address: "0xeA0e46565075E7d230C15881F1147517B3F64B93".to_string(),
+    //     public_key: ["1c58da766ce585cb3bb24cbc6261d758615173ef255d99a2d177eb3bc594b3cb".to_string(),
+    //         "16656b3e907f5d8dd69797d82bf1561af834dad51d94c71d5eb447224eed0c6a".to_string()],
+    //     deposit_amount: BigDecimal::zero(),
+    // };
+    
     let applyAccount = DepositReq{
-        address: "0xeA0e46565075E7d230C15881F1147517B3F64B93".to_string(),
-        public_key: ["10432c58bd4fe0a3852d4f472ce45c268f74241a8e8f7dfc7a0b0ab98402cc1d".to_string(),
-            "6b107a74d78f597a3bb3280525d8b768fe2dd4a1287ce6009e9409bdba4e12e".to_string()],
+        address:"0x0".to_string(),
+        public_key:[
+            "0x18936d8e5f18dc41425e85a25d7a76f63715be4b3c9fac18475d028fca64c740".to_string(),
+            "0x0f933c18160257e0aa54056652e6bc2b8673b31c80cda933421f99dada946bf4".to_string(),
+        ],
         deposit_amount: BigDecimal::zero(),
     };
 
@@ -862,10 +857,10 @@ fn add_applyAccount(tx_for_state: mpsc::Sender<StateKeeperRequest>){
 
     let mut deposit_tx = deposit_tx.unwrap();
 
-    deposit_tx.account = 0;
+    deposit_tx.account = 2;
 
 
-    let account = deposit_tx.account.clone();
+    //let account = deposit_tx.account.clone();
     
     //发送给state
     let mut all_deposits = vec![];

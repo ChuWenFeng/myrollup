@@ -12,7 +12,7 @@ rollup的server分为6个部分
 3. eth_watch
     监控eth上rollup负责存款和退出的智能合约，将获得的信息发送给state_keeper。
 4. state_keeper
-    维护rollup的账户状态树，启动时从数据库恢复状态树，处理存款、交易、退出请求。每个存款和退出请求都将出块，每60秒或8笔交易都将出块，当60秒但交易不足8笔时将进行填充。
+    维护rollup的账户状态树，启动时从数据库恢复状态树，处理存款、交易、退出请求。每个存款和退出请求都将出块，每60秒或8笔交易都将出块，当60秒但交易不足8笔时将进行填充。(Note:当前交易填充部分存在问题，填充的交易会导致proof验证不通过，正常的交易则不会导致次问题)
 5. committer  
     处理state_keeper的出块信息，将其中的账户更改提交到account_update表中，表示一提交但未生成证明的账户信息。读取数据库中已经生成的proof,并将已经生存proof的块内的数据更新到account表中。将账户更新信息和proof信息发送给eth_sender。
 6. eth_sender  
@@ -32,8 +32,92 @@ myrollup的server分为4部分（去除eth相关）
     ...  
 *[detail](image/myrollup_server_detail.png)*
 
-## prover
-启动prover后循环查询数据库是否有已经出块但未被其他prover执行证明的block，且在查询期间将prover_runs上🔓，保证对一个block只有一个prover在生成proof。当从数据库中的获得的block number与本地的不一致时将自身的状态树更新至block number前一个已经生成证明的账户状态。生成的proof存储至数据库。
+## prover  
+启动prover后循环查询数据库是否有已经出块但未被其他prover执行证明的block，且在查询期间将prover_runs上🔓，保证对一个block只有一个prover在生成proof。当从数据库中的获得的block number与本地的不一致时将自身的状态树更新至block number前一个已经生成证明的账户状态。生成的proof存储至数据库。  
+* * *
+proof结构体
+* Transfer
+    ```rust
+    /// This is an instance of the `Spend` circuit.
+    pub struct Transfer<'a, E: JubjubEngine> {
+        pub params: &'a E::Params,
+
+        // number of transactions per block 前一个区块号
+        pub number_of_transactions: usize,
+
+        /// The old root of the tree    前一个root hash
+        pub old_root: Option<E::Fr>,
+
+        /// The new root of the tree    新root hash
+        pub new_root: Option<E::Fr>,
+
+        /// Final truncated rolling SHA256  交易数据的承诺
+        pub public_data_commitment: Option<E::Fr>,
+
+        /// Block number    区块号
+        pub block_number: Option<E::Fr>,
+
+        /// Total fee   总交易费
+        pub total_fee: Option<E::Fr>,
+
+        /// Transactions for this block     交易数据
+        pub transactions: Vec<(Transaction<E>, TransactionWitness<E>)>,
+    }
+    ```
+* Deposit
+    ```rust
+    /// This is an instance of the `Spend` circuit.
+    pub struct Deposit<'a, E: JubjubEngine> {
+        pub params: &'a E::Params,
+
+        // number of deposits per block
+        pub number_of_deposits: usize,
+
+        /// The old root of the tree
+        pub old_root: Option<E::Fr>,
+
+        /// The new root of the tree
+        pub new_root: Option<E::Fr>,
+
+        /// Final truncated rolling SHA256
+        pub public_data_commitment: Option<E::Fr>,
+
+        /// Block number
+        pub block_number: Option<E::Fr>,
+
+        /// Requests for this block
+        pub requests: Vec<(DepositRequest<E>, DepositWitness<E>)>,
+    }
+    ```
+* Exit
+    ```rust
+    /// This is an instance of the `Spend` circuit.
+    pub struct Exit<'a, E: JubjubEngine> {
+        pub params: &'a E::Params,
+
+        // number of exits per block
+        pub number_of_exits: usize,
+
+        /// The old root of the tree
+        pub old_root: Option<E::Fr>,
+
+        /// The new root of the tree
+        pub new_root: Option<E::Fr>,
+
+        /// Final truncated rolling SHA256
+        pub public_data_commitment: Option<E::Fr>,
+
+        /// Supply witness for an empty leaf once
+        pub empty_leaf_witness: LeafWitness<E>,
+
+        /// Block number
+        pub block_number: Option<E::Fr>,
+
+        /// Requests for this block
+        pub requests: Vec<(ExitRequest<E>, ExitWitness<E>)>,
+    }
+    ```
+
 ## 数据库
 |表名|作用|
 |:----|:----|

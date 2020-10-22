@@ -31,8 +31,8 @@ impl PlasmaState {
         }
 
         //添加默认账户用于填充transaction
-        let defaccount = Account::default();
-        balance_tree.insert(2, defaccount);
+        // let defaccount = Account::default();
+        // balance_tree.insert(2, defaccount);
 
         Self {
             balance_tree,
@@ -62,17 +62,20 @@ impl PlasmaState {
     ) -> Result<BigDecimal, TransferApplicationError> {
         if let Some(mut from) = self.balance_tree.items.get(&tx.from).cloned() {
             // TODO: take from `from` instead and uncomment below
-            // let pub_key = self
-            //     .get_account(tx.from)
-            //     .and_then(|a| a.get_pub_key())
-            //     .ok_or(TransferApplicationError::UnknownSigner)?;
-            // if let Some(verified_against) = tx.cached_pub_key.as_ref() {
-            //     if pub_key.0 != verified_against.0 {
-            //         return Err(TransferApplicationError::InvalidSigner);
-            //     }
-            // } else {
-            //     return Err(TransferApplicationError::InvalidSigner);
-            // }
+            let pub_key = self
+                .get_account(tx.from)
+                .and_then(|a| a.get_pub_key())
+                .ok_or(TransferApplicationError::UnknownSigner)?;
+            
+            if let Some(verified_against) = tx.cached_pub_key.as_ref() {
+                let (accx,accy) = pub_key.0.into_xy();
+                let (txx,txy) = verified_against.0.into_xy();
+                if pub_key.0 != verified_against.0 {
+                    return Err(TransferApplicationError::InvalidSigner);
+                }
+            } else {
+                return Err(TransferApplicationError::InvalidSigner);
+            }
 
             let mut transacted_amount = BigDecimal::zero();
             transacted_amount += &tx.amount;

@@ -376,6 +376,8 @@ function main() {
 }
 
 function newKey(seed) {
+    let elrand = elliptic.rand(32)    
+    let ss = seed || elrand
     const sk = (new BN(seed || elliptic.rand(32), 16, "be")).umod(altBabyJubjub.n);
     const pub = altBabyJubjub.g.mul(sk);
     let y = pub.getY();
